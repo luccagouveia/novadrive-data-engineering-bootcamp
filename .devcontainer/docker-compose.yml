@@ -7,14 +7,14 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      # Monta a pasta do projeto dentro do contêiner
       - ..:/workspace:cached
     # Mantém o contêiner rodando
     command: sleep infinity
-    # Adiciona as variáveis de ambiente para o banco de dados
+    # ATUALIZADO: Aponta para o banco de dados do admin
     environment:
       - DB_HOST=159.223.187.110
       - DB_NAME=novadrive
       - DB_USER=etlreadonly
       - DB_PASSWORD=novadrive376A@
       - DB_PORT=5432
+

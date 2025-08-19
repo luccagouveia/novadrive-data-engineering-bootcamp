@@ -5,4 +5,5 @@ FROM python:3.10-slim
 WORKDIR /workspace
 
 # Instala dependências do sistema (se necessário) e o cliente do PostgreSQL
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y postgresql-client nano && rm -rf /var/lib/apt/lists/*
+
