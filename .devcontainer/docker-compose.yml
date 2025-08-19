@@ -8,7 +8,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ..:/workspace:cached
-    network_mode: host
     command: sleep infinity
     environment:
       - DB_HOST=159.223.187.110
@@ -16,6 +15,23 @@ services:
       - DB_USER=etlreadonly
       - DB_PASSWORD=novadrive376A@
       - DB_PORT=5432
+    networks:
+      - novadrive_network
+
+  # Banco de dados Postgres Operacional (NovaDrive)
+  postgres_operational:
+    image: postgres:13-alpine
+    container_name: novadrive_postgres_operational
+    environment:
+      - POSTGRES_USER=novadrive
+      - POSTGRES_PASSWORD=novadrive
+      - POSTGRES_DB=novadrive_sales
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - novadrive_network
 
   # --- SERVIÇOS DO AIRFLOW ---
 
@@ -31,6 +47,8 @@ services:
       - airflow_postgres_data:/var/lib/postgresql/data
     ports:
       - "5434:5432" # Mapeia para a porta 5434 para não conflitar
+    networks:
+      - novadrive_network
 
   # Serviço de inicialização do Airflow
   airflow-init:
@@ -49,6 +67,8 @@ services:
       - ../airflow/plugins:/opt/airflow/plugins
     entrypoint: /bin/bash
     command: -c "airflow db init && airflow users create --username admin --password admin --firstname NovaDrive --lastname User --role Admin --email admin@novadrive.com"
+    networks:
+      - novadrive_network
 
   # Servidor Web do Airflow (a interface que você acessa)
   airflow-webserver:
@@ -70,9 +90,7 @@ services:
       - ../airflow/plugins:/opt/airflow/plugins
     networks:
       - novadrive_network
-    # --- LINHA FALTANTE ADICIONADA AQUI ---
     command: airflow webserver
-
 
   # Agendador do Airflow (o cérebro que dispara as DAGs)
   airflow-scheduler:
@@ -91,6 +109,13 @@ services:
       - ../airflow/logs:/opt/airflow/logs
       - ../airflow/plugins:/opt/airflow/plugins
     command: airflow scheduler
+    networks:
+      - novadrive_network
 
 volumes:
+  postgres_data:
   airflow_postgres_data:
+
+networks:
+  novadrive_network:
+    driver: bridge
