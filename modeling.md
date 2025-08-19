@@ -7,35 +7,36 @@ Esta documentação descreve o modelo dimensional adotado para o Data Warehouse 
 Foi adotado um **Esquema Estrela** clássico, composto por uma tabela Fato central e múltiplas tabelas de Dimensão. Este modelo é ideal por sua simplicidade, performance de consulta e facilidade de entendimento pelos usuários de negócio.
 
 ### Visualização do Modelo
-
-                      +---------------------+
-                      |    Dim_Cliente      |
-                      +---------------------+
-                      | cliente_id (PK)     |
-                      | nome_cliente        |
-                      | email_cliente       |
-                      | cidade_cliente      |
-                      +---------------------+
-                                |
-                                |
-+---------------------+         |         +-------------------------+
-|    Dim_Veiculo      |<--------+-------->|      Fato_Vendas        |
-+---------------------+         |         +-------------------------+
-| veiculo_id (PK)     |         |         | sk_venda (PK)           |
-| modelo              |         |         | cliente_id (FK)         |
-| ano                 |         |         | veiculo_id (FK)         |
-| tipo_motor          |<--------+-------->| concessionaria_id (FK)  |
-+---------------------+         |         | data_id (FK)            |
-|         | valor_pago (Métrica)    |
-|         | quantidade (Métrica)    |
-+---------------------+         +---------------------+
-| Dim_Concessionaria  |<--------|      Dim_Data         |
-+---------------------+         +---------------------+
-| concessionaria_id(PK)         | data_id (PK)          |
-| nome_concessionaria |         | data_completa         |
-| cidade              |         | dia_semana, mes, ano  |
-| estado              |         | trimestre             |
-+---------------------+         +-----------------------+
+---
+|                     +---------------------+
+|                     |    Dim_Cliente      |
+|                     +---------------------+
+|                     | cliente_id (PK)     |
+|                     | nome_cliente        |
+|                     | email_cliente       |
+|                     | cidade_cliente      |
+|                     +---------------------+
+|                               |
+|                               |
++---------------------+         |           +-------------------------+
+|    Dim_Veiculo      | <-------+-------->  |      Fato_Vendas        |
++---------------------+         |           +-------------------------+
+| veiculo_id (PK)     |         |           | sk_venda (PK)           |
+| modelo              |         |           | cliente_id (FK)         |
+| ano                 |         |           | veiculo_id (FK)         |
+| tipo_motor          | <-------+-------->  | concessionaria_id (FK)  |
++---------------------+         |           | data_id (FK)            |
+|                               |           | valor_pago (Métrica)    |                 
+|                               |           | quantidade (Métrica)    |                    
+|                               |           +-------------------------+
+|                    +---------------------+                  +-----------------------+
+|                    | Dim_Concessionaria  | <----------------|      Dim_Data         |
+|                    +---------------------+                  +-----------------------+
+|                    | concessionaria_id(PK)                  | data_id (PK)          |
+|                    | nome_concessionaria |                  | data_completa         |
+|                    | cidade              |                  | dia_semana, mes, ano  |
+|                    | estado              |                  | trimestre             |
+|                    +---------------------+                  +-----------------------+
 ---
 
 ## Detalhamento das Tabelas
