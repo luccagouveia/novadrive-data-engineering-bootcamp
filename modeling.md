@@ -29,14 +29,14 @@ Foi adotado um **Esquema Estrela** clássico, composto por uma tabela Fato centr
 |                               |           | valor_pago (Métrica)    |                 
 |                               |           | quantidade (Métrica)    |                    
 |                               |           +-------------------------+
-|                    +---------------------+                  +-----------------------+
-|                    | Dim_Concessionaria  | <----------------|      Dim_Data         |
-|                    +---------------------+                  +-----------------------+
-|                    | concessionaria_id(PK)                  | data_id (PK)          |
-|                    | nome_concessionaria |                  | data_completa         |
-|                    | cidade              |                  | dia_semana, mes, ano  |
-|                    | estado              |                  | trimestre             |
-|                    +---------------------+                  +-----------------------+
+|                    +---------------------+             |       +-----------------------+
+|                    | Dim_Concessionaria  |             ------- |      Dim_Data         |
+|                    +---------------------+                     +-----------------------+
+|                    | concessionaria_id(PK)                     | data_id (PK)          |
+|                    | nome_concessionaria |                     | data_completa         |
+|                    | cidade              |                     | dia_semana, mes, ano  |
+|                    | estado              |                     | trimestre             |
+|                    +---------------------+                     +-----------------------+
 ---
 
 ## Detalhamento das Tabelas
