@@ -1,3 +1,9 @@
+# Comando para executar este script: '/usr/local/bin/python /workspace/scripts/explore_database_schema.py'
+"""
+Script para realizar uma análise exploratória focada em tabelas específicas de um banco de dados PostgreSQL.
+Este script ignora outras tabelas que não sejam relevantes para a análise de Vendas.
+"""
+
 import os
 import subprocess
 

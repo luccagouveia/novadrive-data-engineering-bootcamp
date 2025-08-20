@@ -56,6 +56,7 @@ Nesta fase, analisamos o banco de dados operacional para entender a estrutura do
 Para simular o ambiente real e validar o pipeline, os seguintes acessos podem ser utilizados:
 
 ### 1. Banco de Dados Operacional (Leitura)
+-   # 'psql -h 159.223.187.110 -p 5432 novadrive etlreadonly'
 -   **Host:** ``
 -   **Porta:** ``
 -   **Banco de Dados:** ``
