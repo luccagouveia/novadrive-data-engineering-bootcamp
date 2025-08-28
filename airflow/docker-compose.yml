@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Banco do Airflow
+  postgres:
+    image: postgres:13
+    container_name: airflow_postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow123
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Servidor Web do Airflow
+  airflow-webserver:
+    image: apache/airflow:2.7.1-python3.11
+    container_name: airflow_webserver
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow123@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__WEBSERVER__DEFAULT_USER_USERNAME: admin
+      AIRFLOW__WEBSERVER__DEFAULT_USER_PASSWORD: admin123
+      AIRFLOW__WEBSERVER__DEFAULT_USER_EMAIL: admin@novadrive.com
+      AIRFLOW__WEBSERVER__DEFAULT_USER_FIRSTNAME: Nova
+      AIRFLOW__WEBSERVER__DEFAULT_USER_LASTNAME: Drive
+      AIRFLOW__WEBSERVER__DEFAULT_USER_ROLE: Admin
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Sao_Paulo
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create --username admin --firstname Nova --lastname Drive --email admin@novadrive.com --role Admin --password admin123 || true &&
+        airflow webserver
+      "
+    restart: unless-stopped
+
+  # Scheduler do Airflow  
+  airflow-scheduler:
+    image: apache/airflow:2.7.1-python3.11
+    container_name: airflow_scheduler
+    depends_on:
+      - postgres
+      - airflow-webserver
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow123@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Sao_Paulo
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: airflow scheduler
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
