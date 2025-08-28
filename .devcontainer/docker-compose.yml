@@ -8,13 +8,114 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ..:/workspace:cached
-    # Mantém o contêiner rodando
     command: sleep infinity
-    # ATUALIZADO: Aponta para o banco de dados do admin
     environment:
       - DB_HOST=159.223.187.110
       - DB_NAME=novadrive
       - DB_USER=etlreadonly
       - DB_PASSWORD=novadrive376A@
       - DB_PORT=5432
+    networks:
+      - novadrive_network
 
+  # Banco de dados Postgres Operacional (NovaDrive)
+  postgres_operational:
+    image: postgres:13-alpine
+    container_name: novadrive_postgres_operational
+    environment:
+      - POSTGRES_USER=novadrive
+      - POSTGRES_PASSWORD=novadrive
+      - POSTGRES_DB=novadrive_sales
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - novadrive_network
+
+  # --- SERVIÇOS DO AIRFLOW ---
+
+  # Banco de dados de metadados do Airflow
+  airflow-postgres:
+    image: postgres:13
+    container_name: novadrive_airflow_postgres
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432" # Mapeia para a porta 5434 para não conflitar
+    networks:
+      - novadrive_network
+
+  # Serviço de inicialização do Airflow
+  airflow-init:
+    image: apache/airflow:2.9.2
+    container_name: novadrive_airflow_init
+    depends_on:
+      - airflow-postgres
+    env_file:
+      - ../.env # Aponta para o arquivo .env na raiz
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/logs:/opt/airflow/logs
+      - ../airflow/plugins:/opt/airflow/plugins
+    entrypoint: /bin/bash
+    command: -c "airflow db init && airflow users create --username admin --password admin --firstname NovaDrive --lastname User --role Admin --email admin@novadrive.com"
+    networks:
+      - novadrive_network
+
+  # Servidor Web do Airflow (a interface que você acessa)
+  airflow-webserver:
+    image: apache/airflow:2.9.2
+    container_name: novadrive_airflow_webserver
+    restart: always
+    depends_on:
+      - airflow-init
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/logs:/opt/airflow/logs
+      - ../airflow/plugins:/opt/airflow/plugins
+    networks:
+      - novadrive_network
+    command: airflow webserver
+
+  # Agendador do Airflow (o cérebro que dispara as DAGs)
+  airflow-scheduler:
+    image: apache/airflow:2.9.2
+    container_name: novadrive_airflow_scheduler
+    restart: always
+    depends_on:
+      - airflow-init
+    env_file:
+      - ../.env
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/logs:/opt/airflow/logs
+      - ../airflow/plugins:/opt/airflow/plugins
+    command: airflow scheduler
+    networks:
+      - novadrive_network
+
+volumes:
+  postgres_data:
+  airflow_postgres_data:
+
+networks:
+  novadrive_network:
+    driver: bridge
